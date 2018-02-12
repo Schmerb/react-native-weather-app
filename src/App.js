@@ -61,13 +61,16 @@ export default class App extends Component {
 			if(data) {
 				data = JSON.parse(data);
 				console.log('data from AsyncStorage', data);
-				this.setState({
+				let newState = {
 					temp: data.temp,
 					humidity: data.humidity,
 					currentLocation: data.currentLocation,
-					weather: data.weather,
 					timestamp: data.timestamp
-				});
+				}
+				if(data.weather) {
+					newState.weather = data.weather;
+				}
+				this.setState(newState);
 			}
 		} catch(err) {
 			console.error(err);
@@ -110,9 +113,11 @@ export default class App extends Component {
 					temp: res.main.temp,
 					humidity: res.main.humidity,
 					currentLocation: res.name,
-					weather: res.weather,
 					timestamp: new Date(Date.now()).toDateString()
 				};
+				if(res.weather) {
+					data.weather = res.weather;
+				}
 				// Save in localStorage
 				AsyncStorage.setItem('lastData', JSON.stringify(data));
 				console.log("data going into AsyncStorage", data);
@@ -151,14 +156,14 @@ export default class App extends Component {
 				:
 				require('./assets/snow-cabin.jpg'); 
 		}
-		if(weatherStr.includes('rain') || weatherStr.includes('mist') || weatherStr.includes('fog') ) {
-			return require('./assets/rain-umbrella.jpg') // rainy
+		if(weatherStr.includes('rain') || weatherStr.includes('mist') || weatherStr.includes('fog')) {
+			return require('./assets/rain-umbrella.jpg'); // rainy
 		}
 		if(weatherStr.includes('cloud')) {
-			if(weatherStr.includes('overcast')) {
-				return require('./assets/overcast.jpg') // overcast and cloudy
-			}
-			return require('./assets/cloudy.jpg') // cloudy
+			return weatherStr.includes('overcast') ?
+				require('./assets/overcast.jpg') // overcast and cloudy
+				:
+				require('./assets/cloudy.jpg'); // cloudy
 		}
 		// Default fallback
 		return require('./assets/balloons-clear-skies.jpg'); // clear skies
