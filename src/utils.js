@@ -16,6 +16,7 @@ const LATITUDE_DELTA = 0.0922;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 
 const OPEN_WEATHER_API_KEY = '2c1b03704a33bb51b82cffd4c74ef9a5';
+const OPEN_WEATHER_BASE_URL = 'http://api.openweathermap.org/data/2.5/weather';
 
 module.exports = {
     SCREEN_HEIGHT,
@@ -23,6 +24,7 @@ module.exports = {
     ASPECT_RATIO,
     LATITUDE_DELTA,
     LONGITUDE_DELTA,
+    OPEN_WEATHER_BASE_URL,
     OPEN_WEATHER_API_KEY,
     instructions
 };
