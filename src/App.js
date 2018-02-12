@@ -9,8 +9,8 @@ import {
 	StyleSheet,
 	Text,
 	View,
-	Button,
-	AsyncStorage
+	AsyncStorage,
+	ImageBackground,
 } from 'react-native';
 
 import RefreshButton  from './components/RefreshButton';
@@ -20,6 +20,8 @@ import {
     LATITUDE_DELTA,
     LONGITUDE_DELTA,
 	OPEN_WEATHER_API_KEY,
+	SCREEN_HEIGHT,
+	SCREEN_WIDTH,
 	instructions
 } from './utils';
 
@@ -28,6 +30,7 @@ export default class App extends Component {
 		super(props);
 		this.state = {
 			position: {
+				loaded: false,
 				latitude: 0,
 				longitude: 0,
 				latitudeDelta: 0,
@@ -45,8 +48,10 @@ export default class App extends Component {
 		this._getCoordinates();
 	}
 
-	componentDidMount() {
-		
+	componentDidUpdate(prevProps, prevState) {
+		if(!prevState.position.loaded && this.state.position.loaded) {
+			this._fetchWeather();
+		}
 	}
 
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -57,7 +62,7 @@ export default class App extends Component {
 			const value = await AsyncStorage.getItem('lastData');
 			if(value) {
 				value = JSON.parse(value);
-				console.log('value', value);
+				console.log('value from AsyncStorage', value);
 				this.setState({
 					temp: value.temp,
 					humidity: value.humidity,
@@ -79,6 +84,7 @@ export default class App extends Component {
 			const long = parseFloat(pos.coords.longitude);
 
 			const initialRegion = {
+				loaded: true,
 				latitude: lat,
 				longitude: long,
 				latitudeDelta: LATITUDE_DELTA,
@@ -98,7 +104,7 @@ export default class App extends Component {
 	_fetchWeather = () => {
 		const { longitude: lon, latitude: lat } = this.state.position;
 		const url = `http://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=Metric&APPID=${OPEN_WEATHER_API_KEY}`;
-
+		console.log('fetchingWeather');
 		return fetch(url)
 			.then(res => res.json())
 			.then((res) => {
@@ -109,7 +115,7 @@ export default class App extends Component {
 				};
 				// Save in localStorage
 				AsyncStorage.setItem('lastData', JSON.stringify(data));
-				console.log("data:", data);
+				console.log("data going into AsyncStorage", data);
 				return this.setState({
 					temp: data.temp,
 					humidity: data.humidity,
@@ -129,22 +135,49 @@ export default class App extends Component {
 		this._fetchWeather();
 	}
 
+	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	// Return appropriate image source depending on current
+	// weather
+	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	_getBgImage = () => {
+		const { temp, humidity } = this.state;
+		if(temp > 3) {
+			return humidity >= 50 ?
+				require('./assets/rain-umbrella.jpg') // rainy
+				:
+				require('./assets/golden-gate-clear-skies.jpg'); // no rain
+		} else {
+			return humidity >= 50 ? 
+				require('./assets/snow-closeup.jpg') // could snow
+				:
+				require('./assets/snow-cabin.jpg'); // just cold
+		}
+	}
+
 	// // // // // // //
 	//
 	// Render method
 	// 
 	// // // // // // //
 	render() {
+		let bgImg = this._getBgImage();
 		return (
 			<View style={styles.container}>
+				
+				<ImageBackground style={styles.image} 
+					   	source={bgImg} 
+						resizeMode="cover"
+				>
+					<View style={styles.innerContainer}>
+						<Text style={styles.welcome}>Weather At Your Location</Text>
 
-				<Text style={styles.welcome}>Weather At Your Location</Text>
+						<DataOutputView temp={this.state.temp} 
+										humidity={this.state.humidity} 
+										timestamp={this.state.timestamp}/>
 
-				<DataOutputView temp={this.state.temp} 
-								humidity={this.state.humidity} 
-								timestamp={this.state.timestamp}/>
-
-				<RefreshButton _handleOnPress={this._handleOnPress}/>
+						<RefreshButton _handleOnPress={this._handleOnPress}/>
+					</View>
+				</ImageBackground>
 				
 			</View>
 		);
@@ -158,11 +191,24 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		alignItems: 'center',
 	},
+	innerContainer: {
+		display: "flex",
+		alignItems: "center",
+		justifyContent: "center",
+		backgroundColor: 'rgba(0,0,0,0.3)',
+		height: SCREEN_HEIGHT,
+		width: SCREEN_WIDTH,
+	},
 	welcome: {
-		color: 'white',
-		fontSize: 28,
+		color: 'orange',
+		fontSize: 44,
+		fontWeight: 'bold',
 		textAlign: 'center',
 		margin: 10,
 		marginBottom: 50
+	},
+	image: {
+		height: SCREEN_HEIGHT,
+		width: SCREEN_WIDTH,
 	}
 });

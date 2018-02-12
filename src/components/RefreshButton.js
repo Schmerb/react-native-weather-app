@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
 		display: "flex",
 		alignItems: "center",
 		justifyContent: "center",
-		backgroundColor: 'orange',
+		backgroundColor: 'cornflowerblue',
 		width: 200,
 		height: 50,
 		marginTop: 50,
