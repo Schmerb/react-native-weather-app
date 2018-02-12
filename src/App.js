@@ -36,7 +36,8 @@ export default class App extends Component {
 			temp: 0,
 			humidity: 0,
 			timestamp: 0,
-			currentLocation: ''
+			currentLocation: '',
+			weather: []
 		};
 	}
 
@@ -64,6 +65,7 @@ export default class App extends Component {
 					temp: data.temp,
 					humidity: data.humidity,
 					currentLocation: data.currentLocation,
+					weather: data.weather,
 					timestamp: data.timestamp
 				});
 			}
@@ -104,11 +106,11 @@ export default class App extends Component {
 		return fetch(url)
 			.then(res => res.json())
 			.then((res) => {
-				console.log(res);
 				let data = {
 					temp: res.main.temp,
 					humidity: res.main.humidity,
 					currentLocation: res.name,
+					weather: res.weather,
 					timestamp: new Date(Date.now()).toDateString()
 				};
 				// Save in localStorage
@@ -135,21 +137,31 @@ export default class App extends Component {
 
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	// Return appropriate image source depending on current
-	// weather
+	// weather conditions
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	_getBgImage = () => {
-		const { temp, humidity } = this.state;
-		if(temp > 3) {
-			return humidity >= 50 ?
-				require('./assets/rain-umbrella.jpg') // rainy
+		const { weather } = this.state;
+		// concatenates all weather descriptions
+		let weatherStr = weather.reduce((acc, item) => `${acc} ${item.description.toLowerCase()}`, '');
+		// in order of priority
+		// first match is target weather for bg image, return source
+		if(weatherStr.includes('snow')) {
+			return Math.round(Math.random()) ?
+				require('./assets/snow-closeup.jpg')
 				:
-				require('./assets/golden-gate-clear-skies.jpg'); // no rain
-		} else {
-			return humidity >= 50 ? 
-				require('./assets/snow-closeup.jpg') // could snow
-				:
-				require('./assets/snow-cabin.jpg'); // just cold
+				require('./assets/snow-cabin.jpg'); 
 		}
+		if(weatherStr.includes('rain') || weatherStr.includes('mist') || weatherStr.includes('fog') ) {
+			return require('./assets/rain-umbrella.jpg') // rainy
+		}
+		if(weatherStr.includes('cloud')) {
+			if(weatherStr.includes('overcast')) {
+				return require('./assets/overcast.jpg') // overcast and cloudy
+			}
+			return require('./assets/cloudy.jpg') // cloudy
+		}
+		// Default fallback
+		return require('./assets/balloons-clear-skies.jpg'); // clear skies
 	}
 
 	// // // // // // //
