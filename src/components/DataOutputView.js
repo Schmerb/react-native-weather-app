@@ -9,9 +9,10 @@ import {
 export default function DataOutputView(props) {
     return(
 		<View style={styles.results}>
-            <Text style={styles.base}>Temp:             {props.temp} ℃</Text>
-            <Text style={styles.base}>Humidity:      {props.humidity}%</Text>
-            <Text style={styles.base}>Last Date:     {props.timestamp}</Text>
+			<Text style={styles.base}>{props.currentLocation}</Text>
+            <Text style={[styles.base, styles.temp]}>{props.temp} ℃</Text>
+            <Text style={[styles.base, styles.humidity]}>{props.humidity}%</Text>
+            <Text style={styles.base}>{props.timestamp}</Text>
         </View>
 	);
 }
@@ -20,10 +21,17 @@ const styles = StyleSheet.create({
 	base: {
 		color: "white",
         fontSize: 24,
-        fontWeight: 'bold'
+		fontWeight: 'bold',
+		alignSelf: 'center'
 	},
 	results: {
 		marginTop: 50,
 		marginBottom: 50,
+	},
+	temp: {
+		fontSize: 90
+	},
+	humidity: {
+		fontSize: 60
 	}
 });

@@ -13,12 +13,11 @@ import {
 	ImageBackground,
 } from 'react-native';
 
-import RefreshButton  from './components/RefreshButton';
-import DataOutputView from './components/DataOutputView';
+import MainView  	  from './components/MainView';
+
 
 import {
-    LATITUDE_DELTA,
-    LONGITUDE_DELTA,
+	OPEN_WEATHER_BASE_URL,
 	OPEN_WEATHER_API_KEY,
 	SCREEN_HEIGHT,
 	SCREEN_WIDTH,
@@ -32,16 +31,14 @@ export default class App extends Component {
 			position: {
 				loaded: false,
 				latitude: 0,
-				longitude: 0,
-				latitudeDelta: 0,
-				longitudeDelta: 0
+				longitude: 0
 			},
 			temp: 0,
 			humidity: 0,
-			timestamp: 0
+			timestamp: 0,
+			currentLocation: ''
 		};
 	}
-
 
 	componentWillMount() {
 		this._loadInitialState();
@@ -59,14 +56,15 @@ export default class App extends Component {
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	_loadInitialState = async () => {
 		try {
-			const value = await AsyncStorage.getItem('lastData');
-			if(value) {
-				value = JSON.parse(value);
-				console.log('value from AsyncStorage', value);
+			const data = await AsyncStorage.getItem('lastData');
+			if(data) {
+				data = JSON.parse(data);
+				console.log('data from AsyncStorage', data);
 				this.setState({
-					temp: value.temp,
-					humidity: value.humidity,
-					timestamp: value.timestamp
+					temp: data.temp,
+					humidity: data.humidity,
+					currentLocation: data.currentLocation,
+					timestamp: data.timestamp
 				});
 			}
 		} catch(err) {
@@ -80,15 +78,13 @@ export default class App extends Component {
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	_getCoordinates = () => {
 		navigator.geolocation.getCurrentPosition((pos) => {
-			const lat = parseFloat(pos.coords.latitude);
+			const lat  = parseFloat(pos.coords.latitude);
 			const long = parseFloat(pos.coords.longitude);
 
 			const initialRegion = {
 				loaded: true,
 				latitude: lat,
-				longitude: long,
-				latitudeDelta: LATITUDE_DELTA,
-				longitudeDelta: LONGITUDE_DELTA
+				longitude: long
 			};
 
 			return this.setState({ position: initialRegion });
@@ -103,14 +99,16 @@ export default class App extends Component {
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	_fetchWeather = () => {
 		const { longitude: lon, latitude: lat } = this.state.position;
-		const url = `http://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=Metric&APPID=${OPEN_WEATHER_API_KEY}`;
+		const url = `${OPEN_WEATHER_BASE_URL}?lat=${lat}&lon=${lon}&units=Metric&APPID=${OPEN_WEATHER_API_KEY}`;
 		console.log('fetchingWeather');
 		return fetch(url)
 			.then(res => res.json())
 			.then((res) => {
+				console.log(res);
 				let data = {
 					temp: res.main.temp,
 					humidity: res.main.humidity,
+					currentLocation: res.name,
 					timestamp: new Date(Date.now()).toDateString()
 				};
 				// Save in localStorage
@@ -165,18 +163,11 @@ export default class App extends Component {
 			<View style={styles.container}>
 				
 				<ImageBackground style={styles.image} 
-					   	source={bgImg} 
-						resizeMode="cover"
-				>
-					<View style={styles.innerContainer}>
-						<Text style={styles.welcome}>Weather At Your Location</Text>
+					   	source={bgImg} resizeMode="cover">
 
-						<DataOutputView temp={this.state.temp} 
-										humidity={this.state.humidity} 
-										timestamp={this.state.timestamp}/>
+					<MainView state={this.state}
+							_handleOnPress={this._handleOnPress}/>
 
-						<RefreshButton _handleOnPress={this._handleOnPress}/>
-					</View>
 				</ImageBackground>
 				
 			</View>

@@ -19,11 +19,12 @@ const styles = StyleSheet.create({
 		display: "flex",
 		alignItems: "center",
 		justifyContent: "center",
-		backgroundColor: 'cornflowerblue',
-		width: 200,
-		height: 50,
-		marginTop: 50,
-		borderRadius: 10,
+		backgroundColor: 'rgba(100,149,237, 0.8)',
+		width: 150,
+		height: 150,
+		borderRadius: 100,
+		borderWidth: 2,
+		borderColor: 'white'
 	},
 	txt: {
 		color: "white",
